@@ -20,10 +20,10 @@
 
 ## 成功标准（规格阶段）
 
-- [ ] PRODUCT_SPEC 无 TBD 关键需求
-- [ ] PROTOCOL 定义 Runtime/Claim/PendingDecision/Task 消息
-- [ ] CAPABILITY_MATRIX 每行有「自研验收方式」
-- [ ] 至少一个 spike：单节点 register + claim 假驱动
+- [x] PRODUCT_SPEC 无 TBD 关键需求（P0 已冻结）
+- [x] PROTOCOL 定义 Runtime/Claim/PendingDecision/Task 消息（JSON Schema 级）
+- [x] CAPABILITY_MATRIX 每行有「自研验收方式」
+- [x] 至少一个 spike：单节点 register + claim 假驱动（`spikes/single-node-fleet`）
 
 ## 许可
 

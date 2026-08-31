@@ -1,0 +1,9 @@
+{
+  "name": "single-node-fleet-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test fleet.test.js",
+    "start": "node index.js"
+  }
+}
