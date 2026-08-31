@@ -1,6 +1,6 @@
-> **本仓即完整单机 [Munder](./docs/fleet/HANDOFF.md)。**  
-> Electron 办公楼 + Hive + 本机 Fleet（`src/main/fleet`）。规格见 `docs/fleet/`。  
-> **不是**「只写规格再推到 munder-difflin」——源码已合入本仓。
+> **Strategy C：纯 Munder 重写的分布式 Fleet（最干净路线）。**  
+> 本仓 = 完整产品（Electron + Hive + Fleet）。一套协议，节点数 ≥ 1；本机开箱，多机不换协议。  
+> 规格：`docs/fleet/`。实现自研，不 vendor Aion/Multica。
 
 <div align="center">
 

@@ -1,12 +1,14 @@
-# ARCHITECTURE — 单机 Munder
+# ARCHITECTURE — Strategy C
 
 ```
-本仓（完整产品）
-├── src/main + src/renderer   # Electron 办公楼 / Hive（原 munder-difflin）
-├── src/main/fleet            # 本机 Fleet：registry / claim / decision-gate
-├── docs/fleet                # Fleet 规格与矩阵
-├── spikes/ + oracle/         # 契约与 A/B 对拍
-└── refs/                     # 只读上游（gitignore）
+纯 Munder 产品（本仓）
+├── src/main + src/renderer     # 办公楼 / Hive（合入的 Munder）
+├── src/main/fleet              # Fleet：registry / claim / decision-gate
+│                                 # 单机 = 1 runtime；多机 = 同协议多 runtime
+├── docs/fleet                  # 规格真相源
+├── spikes/ + oracle/           # 契约与 A/B 对拍
+└── refs/                       # 只读上游（gitignore）
 ```
 
-单机进程内一个 `localFleet` 单例。无分布式 daemon 拓扑。
+**干净重写：** 分布式语义在自研 Fleet 模块里一次做对；UI 仍是 Munder。  
+**无双模式：** 不存在第二套 wire。

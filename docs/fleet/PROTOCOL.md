@@ -1,15 +1,16 @@
-# PROTOCOL — 本机 Fleet wire（JSON Schema 级）
+# PROTOCOL — Fleet wire（JSON Schema 级）
 
-> 单机；节点数 = 1。无分布式双模式。字段权威同下（与历史草案兼容，删去多机叙事）。
+> Strategy C：**一套协议，节点数 ≥ 1**（本机一台或多机）。无 `solo|distributed` 分叉。
+
 
 
 ## 原则
 
-- 本机单一协议；仅本地 runtime
+- 单一协议；节点数 ≥ 1（本机 = 1 节点，多机同报文）
 - `Task.assignee` 为权威「谁做」
 - `PendingDecision.ownerId` 为权威「谁拍板」
 - 冲突 claim → HTTP 409（或等价 `code: "claim_conflict"`）
-- 不复制 Multica/Aion 私有帧
+- 不复制 Multica/Aion 私有帧；语义对拍见 `CAPABILITY_MATRIX.md`
 
 
 ## 公共定义

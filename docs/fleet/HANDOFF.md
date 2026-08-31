@@ -1,28 +1,31 @@
-# HANDOFF — 完整单机 Munder
+# HANDOFF — Strategy C（干净重写）
 
 ## 定位
 
-**本仓 = 完整单机 Munder**：办公楼 UI + Hive + 本机 Fleet（register/claim/硬闸）。  
-不是「规格仓把实现推到别的仓」。
+**纯 Munder 实现的分布式 Fleet 重写**（策略里说的「最干净」那条）：
+
+- 不拷 Aion/Multica 源码
+- 一套 PROTOCOL，节点数 ≥ 1
+- 本仓是完整产品（办公楼 UI + Hive + Fleet），不是规格旁路仓
 
 ## 已完成
 
-1. ✅ 合入 munder-difflin 应用树（`src/`、`hive/`、Electron 配置等）
-2. ✅ Fleet 规格在 `docs/fleet/`（单机）
-3. ✅ `src/main/fleet/` 接入主进程 IPC（`registerFleetIpc`）
-4. ✅ `spikes/` + `oracle/` 可机跑契约
+1. ✅ Fleet 规格 / PROTOCOL / 矩阵（`docs/fleet/`）
+2. ✅ spike + oracle（claim、硬闸）
+3. ✅ 合入 Munder 应用树；`src/main/fleet` IPC
+4. ✅ 明确：非「纯单机收口」，而是干净分布式重写（本机 = 1 节点）
 
 ## 不要做
 
-- 不要把产品再推回 munder-difflin
-- 不要引入多机/双模式
-- 不要拷 Aion/Multica 进 `src/`
+- 不要 git submodule 上游当实现依赖
+- 不要 `solo|distributed` 双模式
+- 不要空口对齐——矩阵每行要有验收
+- 不要把产品再拆回「规格仓 + 另一个应用仓」
 
-## 怎么跑
+## 跑起来
 
 ```bash
-npm install
-npm run dev          # Electron 单机 Munder
+npm install && npm run dev
 cd spikes/single-node-fleet && npm test
 cd oracle && npm test
 ```
