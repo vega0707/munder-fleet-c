@@ -14,7 +14,7 @@
 | 远程 Web+鉴权 | 弱 | ✅ | ✅ | `gateway-auth` | 规格锁定：Electron 免 / Web 必；验收=PROTOCOL `unauthorized` 错误码存在 + PRODUCT_SPEC §鉴权条款；实现可后置但契约测试夹具断言 401 形状 |
 | Runtime 注册 | — | runtime 状态事件 | ✅ daemon register | `runtime-registry` | `POST /runtimes` → online；heartbeat 刷新 `lastHeartbeatAt`；spike 内存实现单测通过 |
 | Claim 任务 | — | — | ✅ claim + 409 语义 | `claim-service` | 同一 task 二次 claim → 409 `claim_conflict`；并发双 claim 仅一胜；spike 单测 |
-| Blocker→人 | 弱 | 待确认 | Inbox/review | `decision-gate` | 存在 `pending` PendingDecision 时工具路径抛/返回 `hard_gate`；resolve 后放行；单测 |
+| Blocker→人 | 弱 | Lead/Inbox 弱对拍 | Inbox/review | `decision-gate` | 存在 `pending` PendingDecision 时工具路径抛/返回 `hard_gate`；resolve 后放行；`spikes/` + `oracle/` 单测 |
 | 执行日志 | 部分 | 部分 | ✅ | `run-log` | P0：PROTOCOL 不强制日志资源；验收=本行标注「P1」且无实现依赖阻塞 claim/registry（见下延后策略） |
 | 多渠道 Slack 等 | 有 | 有 | 有 | `channels` | **延后**：验收=PRODUCT_SPEC 非目标含「多渠道」且本行无 P0 spike 依赖 |
 

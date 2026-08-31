@@ -1,0 +1,27 @@
+{
+  "$id": "https://munder.local/fleet/runtime.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "ownerUserId",
+    "hostLabel",
+    "clis",
+    "lastHeartbeatAt",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^rt_" },
+    "ownerUserId": { "type": "string", "pattern": "^user_" },
+    "hostLabel": { "type": "string", "minLength": 1 },
+    "clis": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "lastHeartbeatAt": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["online", "offline"] },
+    "maxConcurrentClaims": { "type": "integer", "minimum": 1 }
+  }
+}

@@ -1,6 +1,7 @@
 /**
  * Spike: in-memory single-node fleet (no CLI).
- * Modules: runtime-registry + claim-service (+ minimal orchestrator inbox).
+ * Modules: runtime-registry, claim-service, task-board, decision-gate,
+ *          orchestrator inbox, gateway-auth error shape.
  */
 
 function nowIso() {
@@ -31,6 +32,8 @@ export class Fleet {
     this.runtimes = new Map();
     /** @type {Map<string, object>} */
     this.tasks = new Map();
+    /** @type {Map<string, object>} */
+    this.pendingDecisions = new Map();
     /** @type {{ taskId: string, summary: string, at: string }[]} */
     this._orchestratorInbox = [];
   }
@@ -99,6 +102,119 @@ export class Fleet {
       ...task,
       result: task.result ? { ...task.result } : null,
     };
+  }
+
+  /** @param {string} projectId */
+  listTasks(projectId) {
+    return [...this.tasks.values()]
+      .filter((t) => t.projectId === projectId)
+      .map((t) => this.getTask(t.id));
+  }
+
+  /**
+   * Web auth gate shape (Electron path skips this).
+   * @param {string | null | undefined} token
+   */
+  requireAuth(token) {
+    if (!token) {
+      throw new FleetError("unauthorized", "auth required for web gateway", 401);
+    }
+    return true;
+  }
+
+  /**
+   * @param {{
+   *   projectId: string,
+   *   taskId: string,
+   *   runtimeId: string,
+   *   ownerId: string,
+   *   kind: string,
+   *   prompt: string
+   * }} input
+   */
+  createPendingDecision(input) {
+    const task = this.tasks.get(input?.taskId);
+    if (!task) throw new FleetError("not_found", `task ${input?.taskId}`, 404);
+    if (!this.runtimes.has(input.runtimeId)) {
+      throw new FleetError("not_found", `runtime ${input.runtimeId}`, 404);
+    }
+    const kinds = new Set([
+      "tool_permission",
+      "clarification",
+      "destructive",
+      "brainstorm",
+    ]);
+    if (!kinds.has(input.kind) || !input.prompt || !input.ownerId || !input.projectId) {
+      throw new FleetError("invalid", "pending decision fields invalid", 400);
+    }
+    const pd = {
+      id: newId("pd"),
+      projectId: input.projectId,
+      taskId: input.taskId,
+      runtimeId: input.runtimeId,
+      ownerId: input.ownerId,
+      kind: input.kind,
+      prompt: input.prompt,
+      status: "pending",
+      resolution: null,
+    };
+    this.pendingDecisions.set(pd.id, pd);
+    task.status = "blocked";
+    return { ...pd };
+  }
+
+  /**
+   * @param {string} id
+   * @param {{ status: "resolved"|"rejected", resolution?: string, actorId: string }} input
+   */
+  resolvePendingDecision(id, input) {
+    const pd = this.pendingDecisions.get(id);
+    if (!pd) throw new FleetError("not_found", `pending-decision ${id}`, 404);
+    if (pd.status !== "pending") {
+      throw new FleetError("invalid", `pending-decision ${id} not pending`, 400);
+    }
+    if (input?.actorId !== pd.ownerId) {
+      throw new FleetError("unauthorized", "only ownerId may resolve", 401);
+    }
+    if (input.status !== "resolved" && input.status !== "rejected") {
+      throw new FleetError("invalid", "status must be resolved|rejected", 400);
+    }
+    pd.status = input.status;
+    pd.resolution = input.resolution ?? null;
+    const task = this.tasks.get(pd.taskId);
+    if (task && task.status === "blocked") {
+      const stillPending = [...this.pendingDecisions.values()].some(
+        (d) => d.taskId === pd.taskId && d.status === "pending",
+      );
+      if (!stillPending) task.status = "doing";
+    }
+    return { ...pd };
+  }
+
+  /** @param {string} taskId */
+  hasPendingGate(taskId) {
+    return [...this.pendingDecisions.values()].some(
+      (d) => d.taskId === taskId && d.status === "pending",
+    );
+  }
+
+  /**
+   * Hard gate: pending decisions block tool calls.
+   * @param {string} taskId
+   * @param {{ name: string, args?: object }} tool
+   */
+  invokeTool(taskId, tool) {
+    const task = this.tasks.get(taskId);
+    if (!task) throw new FleetError("not_found", `task ${taskId}`, 404);
+    if (!tool?.name) throw new FleetError("invalid", "tool.name required", 400);
+    if (this.hasPendingGate(taskId)) {
+      throw new FleetError(
+        "hard_gate",
+        `task ${taskId} has unresolved PendingDecision`,
+        403,
+      );
+    }
+    return { ok: true, name: tool.name, args: tool.args ?? {} };
   }
 
   /**

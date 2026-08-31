@@ -1,0 +1,9 @@
+{
+  "name": "munder-fleet-c-oracle",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test validate.js"
+  },
+  "description": "Strategy C PROTOCOL regression oracle for fleets A/B"
+}

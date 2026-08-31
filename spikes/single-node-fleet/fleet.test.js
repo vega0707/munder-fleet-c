@@ -106,8 +106,119 @@ describe("ClaimService", () => {
   });
 });
 
+describe("decision-gate", () => {
+  it("blocks tool use while PendingDecision is pending", () => {
+    const fleet = new Fleet();
+    const rt = fleet.registerRuntime({
+      ownerUserId: "user_owner",
+      hostLabel: "local",
+      clis: ["claude"],
+    });
+    const task = fleet.createTask({
+      projectId: "proj_demo",
+      title: "needs gate",
+      assignee: "vega",
+    });
+    fleet.claim(rt.id, task.id);
+    const pd = fleet.createPendingDecision({
+      projectId: "proj_demo",
+      taskId: task.id,
+      runtimeId: rt.id,
+      ownerId: "user_owner",
+      kind: "clarification",
+      prompt: "which API?",
+    });
+    assert.equal(pd.status, "pending");
+    assert.throws(
+      () => fleet.invokeTool(task.id, { name: "bash", args: { cmd: "ls" } }),
+      (err) => {
+        assert.equal(err.code, "hard_gate");
+        assert.equal(err.status, 403);
+        return true;
+      },
+    );
+  });
+
+  it("allows tool use after owner resolves", () => {
+    const fleet = new Fleet();
+    const rt = fleet.registerRuntime({
+      ownerUserId: "user_owner",
+      hostLabel: "local",
+      clis: ["claude"],
+    });
+    const task = fleet.createTask({
+      projectId: "proj_demo",
+      title: "gated then free",
+      assignee: "vega",
+    });
+    fleet.claim(rt.id, task.id);
+    const pd = fleet.createPendingDecision({
+      projectId: "proj_demo",
+      taskId: task.id,
+      runtimeId: rt.id,
+      ownerId: "user_owner",
+      kind: "tool_permission",
+      prompt: "allow rm?",
+    });
+    fleet.resolvePendingDecision(pd.id, {
+      status: "resolved",
+      resolution: "yes",
+      actorId: "user_owner",
+    });
+    const call = fleet.invokeTool(task.id, { name: "bash", args: { cmd: "echo ok" } });
+    assert.equal(call.ok, true);
+    assert.equal(call.name, "bash");
+  });
+});
+
+describe("task-board", () => {
+  it("lists tasks for a project including in-progress", () => {
+    const fleet = new Fleet();
+    const rt = fleet.registerRuntime({
+      ownerUserId: "user_owner",
+      hostLabel: "local",
+      clis: ["claude"],
+    });
+    const a = fleet.createTask({
+      projectId: "proj_demo",
+      title: "one",
+      assignee: "vega",
+    });
+    const b = fleet.createTask({
+      projectId: "proj_demo",
+      title: "two",
+      assignee: "michael",
+    });
+    fleet.createTask({
+      projectId: "proj_other",
+      title: "hidden",
+      assignee: "vega",
+    });
+    fleet.claim(rt.id, a.id);
+    const list = fleet.listTasks("proj_demo");
+    assert.equal(list.length, 2);
+    assert.ok(list.some((t) => t.id === a.id && t.status === "doing"));
+    assert.ok(list.some((t) => t.id === b.id && t.status === "todo"));
+  });
+});
+
+describe("gateway-auth error shape", () => {
+  it("unauthorized matches PROTOCOL error object", () => {
+    const fleet = new Fleet();
+    assert.throws(
+      () => fleet.requireAuth(null),
+      (err) => {
+        assert.equal(err.code, "unauthorized");
+        assert.equal(err.status, 401);
+        assert.equal(typeof err.message, "string");
+        return true;
+      },
+    );
+  });
+});
+
 describe("local acceptance story (no CLI)", () => {
-  it("register → assign → claim → complete", () => {
+  it("register → assign → claim → pending → resolve → complete", () => {
     const fleet = new Fleet();
     const rt = fleet.registerRuntime({
       ownerUserId: "user_owner",
@@ -120,7 +231,23 @@ describe("local acceptance story (no CLI)", () => {
       assignee: "vega",
     });
     fleet.claim(rt.id, task.id);
+    const pd = fleet.createPendingDecision({
+      projectId: "proj_local",
+      taskId: task.id,
+      runtimeId: rt.id,
+      ownerId: "user_owner",
+      kind: "clarification",
+      prompt: "ambiguity",
+    });
+    assert.throws(() => fleet.invokeTool(task.id, { name: "edit" }));
+    fleet.resolvePendingDecision(pd.id, {
+      status: "resolved",
+      resolution: "go",
+      actorId: "user_owner",
+    });
+    fleet.invokeTool(task.id, { name: "edit" });
     fleet.complete(task.id, { summary: "ok" });
     assert.equal(fleet.getTask(task.id).status, "done");
+    assert.equal(fleet.orchestratorInbox().length, 1);
   });
 });
