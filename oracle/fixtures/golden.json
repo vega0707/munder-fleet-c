@@ -1,0 +1,70 @@
+{
+  "description": "Golden payloads and expected semantic outcomes for A/B regression against Strategy C PROTOCOL",
+  "validRuntime": {
+    "id": "rt_abc123def456",
+    "ownerUserId": "user_owner",
+    "hostLabel": "vega-mbp",
+    "clis": ["claude", "codex"],
+    "lastHeartbeatAt": "2026-08-31T16:00:00.000Z",
+    "status": "online",
+    "maxConcurrentClaims": 1
+  },
+  "validTaskTodo": {
+    "id": "task_abc123def456",
+    "projectId": "proj_demo",
+    "title": "ship claim",
+    "assignee": "vega",
+    "status": "todo",
+    "claimedByRuntimeId": null,
+    "result": null
+  },
+  "validPending": {
+    "id": "pd_abc123def456",
+    "projectId": "proj_demo",
+    "taskId": "task_abc123def456",
+    "runtimeId": "rt_abc123def456",
+    "ownerId": "user_owner",
+    "kind": "clarification",
+    "prompt": "which API?",
+    "status": "pending",
+    "resolution": null
+  },
+  "validErrorHardGate": {
+    "code": "hard_gate",
+    "message": "task has unresolved PendingDecision"
+  },
+  "validErrorClaimConflict": {
+    "code": "claim_conflict",
+    "message": "task already claimed"
+  },
+  "validErrorUnauthorized": {
+    "code": "unauthorized",
+    "message": "auth required for web gateway"
+  },
+  "invalidTaskMissingAssignee": {
+    "id": "task_abc123def456",
+    "projectId": "proj_demo",
+    "title": "broken",
+    "status": "todo",
+    "claimedByRuntimeId": null,
+    "result": null
+  },
+  "semanticRules": [
+    {
+      "id": "claim_atomic_409",
+      "rule": "Second claim on same taskId must yield error.code claim_conflict with HTTP 409 semantics"
+    },
+    {
+      "id": "hard_gate_pending",
+      "rule": "Any pending PendingDecision on taskId blocks tool invocation with error.code hard_gate"
+    },
+    {
+      "id": "assignee_authority",
+      "rule": "Task.assignee is authoritative who-does; claimedByRuntimeId is occupancy only"
+    },
+    {
+      "id": "single_protocol",
+      "rule": "No solo|distributed dual protocol; node count >= 1 uses same schemas"
+    }
+  ]
+}

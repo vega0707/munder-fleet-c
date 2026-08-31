@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main, 'release/**']
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Node 22: avoids Node 20 deprecation on Actions runners
+          node-version: 22
+          cache: npm
+      # Skip postinstall (electron-rebuild). On CI it often trips npm's
+      # "Exit handler never called" bug and leaves node_modules incomplete,
+      # so `tsc` / `electron-vite` disappear (exit 127). Typecheck does not
+      # need native rebuilds.
+      - name: Install dependencies
+        run: |
+          npm ci --ignore-scripts
+          test -x node_modules/.bin/tsc
+          test -x node_modules/.bin/electron-vite
+      - name: Typecheck (node + web)
+        run: npm run typecheck
+      - name: Release links consistent
+        run: npm run check:links
+
+  build:
+    name: Build
+    runs-on: macos-latest
+    # Build exercises packaging; allowed to fail without blocking merge.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: |
+          npm ci --ignore-scripts
+          test -x node_modules/.bin/electron-vite
+      # Native modules needed for a real app build; isolate from npm ci so a
+      # rebuild failure is visible and does not corrupt the install.
+      - name: Rebuild native modules
+        run: npx electron-rebuild -f
+      - name: Build
+        run: npm run build

@@ -1,0 +1,5 @@
+- **Several floors in one window.** Each project is its own hive; switch with tabs.
+- **Seat hub.** Another machine can take over a chair after this one dies (~90s lease).
+- **Join a floor from the hub** so a second computer can pick up that project's seats.
+- **Dev templates with job titles**, plus a global live-agent cap. Extra seats stay on the floor until a slot frees.
+- **New agents default to the built-in engine.** The god is not blocked by the live cap.

@@ -1,0 +1,20 @@
+{
+  "$id": "https://munder.local/fleet/error.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code", "message"],
+  "properties": {
+    "code": {
+      "type": "string",
+      "enum": [
+        "claim_conflict",
+        "not_found",
+        "invalid",
+        "hard_gate",
+        "unauthorized"
+      ]
+    },
+    "message": { "type": "string" }
+  }
+}

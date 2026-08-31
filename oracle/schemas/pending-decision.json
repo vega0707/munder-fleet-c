@@ -1,0 +1,40 @@
+{
+  "$id": "https://munder.local/fleet/pending-decision.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "projectId",
+    "taskId",
+    "runtimeId",
+    "ownerId",
+    "kind",
+    "prompt",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^pd_" },
+    "projectId": { "type": "string", "pattern": "^proj_" },
+    "taskId": { "type": "string", "pattern": "^task_" },
+    "runtimeId": { "type": "string", "pattern": "^rt_" },
+    "ownerId": { "type": "string", "pattern": "^user_" },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "tool_permission",
+        "clarification",
+        "destructive",
+        "brainstorm"
+      ]
+    },
+    "prompt": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "resolved", "rejected"]
+    },
+    "resolution": {
+      "anyOf": [{ "type": "null" }, { "type": "string" }]
+    }
+  }
+}
