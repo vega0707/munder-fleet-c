@@ -463,7 +463,8 @@ export function useHive(config: HarnessConfig | null): void {
       const godCwd = (typeof registryCwd === 'string' && registryCwd.trim())
         || project.defaultCwd?.trim()
         || project.hiveRootPath.replace(/[/\\]hive[/\\]?$/, '')
-        || config.harnessHome;
+        || config.harnessHome
+        || '';
       const command = providerNeedsPty(godProvider)
         ? buildSpawnCommand(config, godModel, godProvider)
         : 'builtin';

@@ -14,29 +14,41 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node 22: avoids Node 20 deprecation on Actions runners
+          node-version: 22
           cache: npm
+      # Skip postinstall (electron-rebuild). On CI it often trips npm's
+      # "Exit handler never called" bug and leaves node_modules incomplete,
+      # so `tsc` / `electron-vite` disappear (exit 127). Typecheck does not
+      # need native rebuilds.
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci --ignore-scripts
+          test -x node_modules/.bin/tsc
+          test -x node_modules/.bin/electron-vite
       - name: Typecheck (node + web)
         run: npm run typecheck
-      # Release gate: every advertised download link and docs version string must
-      # match package.json. A version left behind in RELEASE.md / docs turns the
-      # download buttons into 404s the moment the next release ships — this catches
-      # it on the release branch, before a tag, instead of on launch day.
       - name: Release links consistent
         run: npm run check:links
 
   build:
     name: Build
     runs-on: macos-latest
-    # Build exercises the native node-pty rebuild; allowed to fail without blocking.
+    # Build exercises packaging; allowed to fail without blocking merge.
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run build
+      - name: Install dependencies
+        run: |
+          npm ci --ignore-scripts
+          test -x node_modules/.bin/electron-vite
+      # Native modules needed for a real app build; isolate from npm ci so a
+      # rebuild failure is visible and does not corrupt the install.
+      - name: Rebuild native modules
+        run: npx electron-rebuild -f
+      - name: Build
+        run: npm run build
