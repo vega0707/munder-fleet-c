@@ -1,4 +1,4 @@
-# AGENTS.md — munder-fleet-c（Strategy C）
+# AGENTS.md — munder-fleet-pure（Strategy C）
 
 1. **定位：** 纯 Munder 实现的 **分布式 Fleet 干净重写**（最干净路线）。本仓是完整产品仓，不是「只写规格」。
 2. 不得将 Aion/Multica 源码复制进实现目录（`src/` 等）。

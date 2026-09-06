@@ -1,5 +1,5 @@
 {
-  "name": "munder-fleet-c-oracle",
+  "name": "munder-fleet-pure-oracle",
   "private": true,
   "type": "module",
   "scripts": {
